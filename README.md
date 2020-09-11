@@ -33,29 +33,31 @@ readyData 的消费者，可以有多个消费者批量消费同一个 topic 下
 提供客户端访问的接口，包括添加延时消息、消费消息、确认消费成功等接口
 
 ## 数据持久化存储
-数据持久化不依赖于第三方存储软件，
-延时消息,文件名是文件 1G=1073741824  
+
+### SleepData 持久化
+数据持久化到磁盘文件中，每个文件存储 1G 的数据（1G=1073741824），在数据增长过程中，可能会产生多个文件，
 有且仅有每个文件中的消息全部被转移到 ready 队列中之后才可以清除该部分数据
-清除方式，当每个文件中的内容少于一定比例后（比如 <=5%），将追加到后面文件中，为了释放磁盘空间。
+清除方式，当每个文件中的内容少于一定比例后（比如 <=10%），将追加到后面文件中，为了释放磁盘空间。
 索引不做更新，如果根据索引检索数据转移去 ready queue 时，如果主文件不存在，忽略错误，我们认为它是转移到新的 delay 文件中
- /hank/data/topic/{$name}/delay_0000000000.bson
- /hank/data/topic/{$name}/delay_1073741824.bson
+ - /hank/data/topic/{$name}/sleep_0000000000.bson
+ - /hank/data/topic/{$name}/sleep_1073741824.bson
 
-已到处理时间的消息
-超过一定时间的消息将被删除，从 delay queue 到 ready queue，落盘需要定期刷新，比如 5s 刷一次
- /hank/data/topic/{$name}/ready_0000000000.bson
- /hank/data/topic/{$name}/ready_1073741824.bson
+### ReadyData 持久化
+已到处理时间的消息超过一定时间的消息将被删除，从 delay queue 到 ready queue，落盘需要定期刷新，比如 5s 刷一次
+ - /hank/data/topic/{$name}/ready_0000000000.bson
+ - /hank/data/topic/{$name}/ready_1073741824.bson
 
-延时消息的索引，用以计算哪些消息可正常消费了
-在这个索引中，也记录了哪些消息已经转移到 ready 队列中了
- /hank/data/topic/{$name}/delay.index
+### 索引数据
+延时消息的索引，用以计算哪些消息可正常消费了。在这个索引中，也记录了哪些消息已经转移到 ready 队列中了
+ - /hank/data/topic/{$name}/sleep.index
 
-偏移量，记录各个消费者对消息的消费进度，及最后更改时间
- /hank/data/topic/{$name}/offset
+### 元数据
+消费进展，每个文件存放的数据量等元数据
+ - /hank/data/topic/{$name}/metadata
 
-
-
-高可用：
+# 高可用
+第一版实现主要功能，高可用特性在后续版本陆续实现，主要有：
  1. 数据全量备份
  2. 服务器主备
  3. 实现 name server，集中存储 offset 信息，主备服务器信息，健康检查
+ 4. metric: 监控数据，对外提供接口，返回服务当前状态。
