@@ -1,4 +1,8 @@
 # turtlemq
+
+![Go.Dev](https://img.shields.io/badge/stage-design-007d9c?logo=go&logoColor=white)
+![Version](https://img.shields.io/badge/version-v1.0-007d9c)
+
 开源的高并发延时消息队列（Delay message queue）, 提供消息持久化、高可用等特性
 
 # Why
