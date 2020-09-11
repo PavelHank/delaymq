@@ -1,6 +1,6 @@
 # 基本概念
 
-`v1.0`@[hank]((mailto:pavelhank@outlook.com)
+`v1.0`@[hank](mailto:pavelhank@outlook.com)
 ---
 
 ## 1 消费模型

@@ -1,6 +1,6 @@
 # 特性
 
-`v1.0`@[hank](pavelhank@outlook.com)
+`v1.0`@[hank](mailto:pavelhank@outlook.com)
 ---
 
 ## 1 延时消息
