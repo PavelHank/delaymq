@@ -13,23 +13,23 @@
 
 ```
 Get /consume
-<offset:20,member:0,body:...>
-<offset:21,member:0,body:...>
-<offset:22,member:0,body:...>
-<offset:23,member:0,body:...>
-<offset:24,member:0,body:...>
+<offset:20,body:...>
+<offset:21,body:...>
+<offset:22,body:...>
+<offset:23,body:...>
+<offset:24,body:...>
 ```
 
 客户端也是顺序接收到这些消息，在 Ack 确认时，客户端需要有序提交，比如：
 
 ```
 Post /ack 
-<offset:20,member:0>
-<offset:21,member:0>
-<offset:22,member:0>
+<offset:20>
+<offset:21>
+<offset:22>
 ```
 
-如果客户端确认了 `offset = 22,member = 0` 处理成功，将继续等待前面两条得 Ack 调用。如果一直没有调用，将重复投放 `offset = 20` 和 `offset = 21` 的两条。当这几条全部 Ack 后， Consumer 库才应该调用服务端的 Ack 接口，将这部分确认消费信息持久化到服务端。如果客户端在成功消费了这三条数据，还没有调用服务端 Ack 接口就因异常退出了，服务端将重新投放 `offset=20`、`offset=21`、`offset=22` 这几条消息。
+如果客户端确认了 `offset = 22` 处理成功，将继续等待前面两条得 Ack 调用。如果一直没有调用，将重复投放 `offset = 20` 和 `offset = 21` 的两条。当这几条全部 Ack 后， Consumer 库才应该调用服务端的 Ack 接口，将这部分确认消费信息持久化到服务端。如果客户端在成功消费了这三条数据，还没有调用服务端 Ack 接口就因异常退出了，服务端将重新投放 `offset=20`、`offset=21`、`offset=22` 这几条消息。
 
 ## Broker 服务端
 服务端主要管理延时数据，在队列中，每条数据均属于一个确定的 Topic, Producer 向 Topic 中写数据，Consumer 从 Topic 中读数据。由于 Topic 需要支持多个 Consumer 的支持，所以需要多个进度表记录每个 Consumer 的消费记录。对 Topic 的数据将分别管理 DelayData 和 ReadyData。所有的 Consumer 都读的是 ReadyData。
@@ -47,4 +47,16 @@ Post /ack
 ```
 
 其中， commitLog 在成功消费后将尝试删除，而 ReadyData 按照配置保留指定的数据量（比如最近七天），如果总数据量不超过 1G，将不会触发删除逻辑。CommitLog 文件中数据存储格式：
-`len:1000,created_at:{CreatedTime},delay_to:{readyAt},body:....`
+
+```
+{"created_at":1600069501,"delay_to":1600073101,"body":"SGVsbG8gV29ybGQ="}
+{"created_at":1600069501,"delay_to":1600073101,"body":"SGVsbG8gV29ybGQ="}
+{"created_at":1600069501,"delay_to":1600073101,"body":"SGVsbG8gV29ybGQ="}
+{"created_at":1600069501,"delay_to":1600073101,"body":"SGVsbG8gV29ybGQ="}
+{"created_at":1600069501,"delay_to":1600073101,"body":"SGVsbG8gV29ybGQ="}
+{"created_at":1600069501,"delay_to":1600073101,"body":"SGVsbG8gV29ybGQ="}
+{"created_at":1600069501,"delay_to":1600073101,"body":"SGVsbG8gV29ybGQ="}
+{"created_at":1600069501,"delay_to":1600073101,"body":"SGVsbG8gV29ybGQ="}
+{"created_at":1600069501,"delay_to":1600073101,"body":"SGVsbG8gV29ybGQ="}
+{"created_at":1600069501,"delay_to":1600073101,"body":"SGVsbG8gV29ybGQ="}
+```
